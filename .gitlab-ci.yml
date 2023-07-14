@@ -1,0 +1,21 @@
+# Docker image requires Python 3 and curl
+# Shell script can be run in bash and ash
+
+# Set $ENV_URL when configuring the scheduled pipeline
+
+stages: 
+  - sourceApiVersion
+
+####################################################
+# Check the org's API version and update if a newer version is available.
+# This job will run on a schedule and is allowed to fail.
+####################################################
+sourceApiVersion:
+  stage: sourceApiVersion
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+  allow_failure: true
+  script:
+    - version=$(python3 ./api_version.py --url $ENV_URL)
+    - source ./push_api_updates.sh
