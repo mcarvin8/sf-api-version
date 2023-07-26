@@ -80,6 +80,19 @@ def update_json_file(current_version, latest_version, json_path, json_content):
         json.dump(json_content, file, indent=2, sort_keys=True)
 
 
+def send_request(data_request, data_url, token):
+    """
+        Send a request with urlib.request
+        and return the response
+    """
+    encoded_data = urllib.parse.urlencode(data_request).encode("utf-8")
+    formatted_request = urllib.request.Request(data_url, data=encoded_data)
+    formatted_request.add_header("PRIVATE-TOKEN", token)
+
+    with urllib.request.urlopen(formatted_request) as request_response:
+        logging.info(request_response.read())
+
+
 def post_to_gitlab(latest_version, json_path, server, project, token, source_branch):
     """
         Function to post the updated JSON to GitLab
@@ -101,13 +114,7 @@ def post_to_gitlab(latest_version, json_path, server, project, token, source_bra
         "actions[][file_path]": json_path,
         "actions[][content]": content
     }
-
-    commit_data = urllib.parse.urlencode(commit_data).encode("utf-8")
-    commit_request = urllib.request.Request(commit_url, data=commit_data)
-    commit_request.add_header("PRIVATE-TOKEN", token)
-
-    with urllib.request.urlopen(commit_request) as commit_response:
-        logging.info(commit_response.read())
+    send_request(commit_data, commit_url, token)
 
     # Create merge request back into the source branch
     merge_request_url = f"https://{server}/api/v4/projects/{project}/merge_requests"
@@ -116,13 +123,7 @@ def post_to_gitlab(latest_version, json_path, server, project, token, source_bra
         "target_branch": source_branch,
         "title": f"Change {source_branch} Source API Version to {latest_version}",
     }
-
-    merge_request_data = urllib.parse.urlencode(merge_request_data).encode("utf-8")
-    merge_request_request = urllib.request.Request(merge_request_url, data=merge_request_data)
-    merge_request_request.add_header("PRIVATE-TOKEN", token)
-
-    with urllib.request.urlopen(merge_request_request) as merge_request_response:
-        logging.info(merge_request_response.read())
+    send_request(merge_request_data, merge_request_url, token)
 
 
 def main(url, json_path, server, project, token, branch):
