@@ -101,7 +101,7 @@ def post_to_gitlab(latest_version, json_path, server, project, token, source_bra
     new_branch = f"update_{source_branch}_to_api_version_{latest_version}"
 
     # Read the content of the json file
-    with open(json_path, "r") as json_file:
+    with open(json_path, 'r', encoding='utf-8') as json_file:
         content = json_file.read()
 
     # Update json file on a new branch created from the source branch
